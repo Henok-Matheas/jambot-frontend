@@ -1,95 +1,103 @@
-import Image from 'next/image'
-import styles from './page.module.css'
+"use client";
+import Script from "next/script";
+import { useEffect } from "react";
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 export default function Home() {
+  useEffect(() => {
+    const constructPayload = (fieldsData) => {
+      // Your payload hashmap
+      let payloadMap = {
+        name: "name",
+        email: "email",
+        chat_id: "telegram", // Map 'chat_id' to 'telegram' based on your requirement
+        week_start: "some_title", // Map 'week_start' to the appropriate title in fieldsData
+        week_end: "another_title", // Map 'week_end' to the appropriate title in fieldsData
+      };
+
+      // Create an empty payload object
+      let payload = {};
+      let schedule = {};
+
+      // Iterate over the fields data and update payload
+      fieldsData.forEach((field) => {
+        if (field.title in payloadMap) {
+          payload[field.title] = field.answer.value;
+        }
+        if (field.type === "MULTI_SELECT") {
+          let answer = field.answer.value;
+          let zones = answer.split(",");
+          let day_time = field.title.split(" ");
+          let day = day_time[0];
+          let time = day_time[1];
+
+          zones.forEach((zone) => {
+            if (zone.toString().length !== 0) {
+              schedule[`${day}_${time}_${zone}`] = undefined;
+            }
+          });
+        }
+      });
+
+      payload["schedule"] = schedule;
+      // Return the updated payload
+      return payload;
+    };
+
+    const sendPostRequest = async (fields) => {
+      try {
+        const response = await fetch(backendUrl, {
+          mode: "no-cors",
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            // Add any other headers your API requires
+          },
+          body: JSON.stringify(fields),
+        });
+
+        if (response.ok) {
+          // Request was successful, handle the response
+          const result = await response.json();
+        } else {
+          // Handle errors
+          console.error("Failed to send POST request");
+        }
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    };
+
+    window.addEventListener("message", (e) => {
+      if (e?.data?.toString().includes("Tally.FormSubmitted")) {
+        const payload = JSON.parse(e.data).payload;
+
+        const fields = constructPayload(payload.fields);
+
+        console.log("fields: ", fields);
+
+        // send a post request to your backend
+        sendPostRequest(fields);
+      }
+    });
+  });
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.js</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+    <>
+      <iframe
+        data-tally-src="https://tally.so/embed/wadDMX?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1"
+        width="100%"
+        height="284"
+        title="Contact form"
+      ></iframe>
 
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  )
+      <Script
+        id="tally-js"
+        src="https://tally.so/widgets/embed.js"
+        onLoad={() => {
+          Tally.loadEmbeds();
+        }}
+      />
+    </>
+  );
 }
