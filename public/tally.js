@@ -1237,7 +1237,7 @@
                       const sendPostRequest = async (fields) => {
                         try {
                           const backendUrl =
-                            "https://m0sqpdp2-8080.uks1.devtunnels.ms/bot/schedule";
+                            "https://jambottally-ormqcmgxfa-od.a.run.app/bot/schedule";
 
                           console.log("fields: ", JSON.stringify(fields));
 
