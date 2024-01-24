@@ -1219,7 +1219,9 @@
 
                             zones.forEach((zone) => {
                               if (zone.toString().length !== 0) {
-                                schedule[`${day}_${time}_${zone}`] = 1;
+                                schedule[
+                                  `${day}_${time}_${zone.toString().trim()}`
+                                ] = 1;
                               }
                             });
                           }
@@ -1236,6 +1238,8 @@
                         try {
                           const backendUrl =
                             "https://m0sqpdp2-8080.uks1.devtunnels.ms/bot/schedule";
+
+                          console.log("fields: ", JSON.stringify(fields));
 
                           const response = await this.fetch(backendUrl, {
                             method: "POST",

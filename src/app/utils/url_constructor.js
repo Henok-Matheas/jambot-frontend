@@ -1,5 +1,4 @@
 export const getUserSpecificUrl = (queryParams) => {
-  console.log(queryParams);
   var queryParamMap = {
     name: "name",
     email: "email",
